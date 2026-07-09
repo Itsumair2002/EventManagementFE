@@ -1,4 +1,6 @@
 /** @type {import('tailwindcss').Config} */
+const withOpacity = (variable) => `rgb(var(${variable}) / <alpha-value>)`;
+
 export default {
   content: [
     "./index.html",
@@ -9,36 +11,55 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        display: ["'Playfair Display'", "serif"],
-        body: ["'DM Sans'", "sans-serif"],
+        display: ["'Sora'", "'DM Sans'", "sans-serif"],
+        body: ["'Inter'", "'DM Sans'", "sans-serif"],
         mono: ["'JetBrains Mono'", "monospace"],
       },
       colors: {
-        brand: {
-          50:  "#fff7ed",
-          100: "#ffedd5",
-          200: "#fed7aa",
-          300: "#fdba74",
-          400: "#fb923c",
-          500: "#f97316",
-          600: "#ea580c",
-          700: "#c2410c",
-          800: "#9a3412",
-          900: "#7c2d12",
+        // --- Semantic, theme-aware tokens (defined in index.css) ---
+        canvas: withOpacity("--bg"),
+        surface: withOpacity("--surface"),
+        elevated: withOpacity("--elevated"),
+        line: withOpacity("--border"),
+        fg: {
+          DEFAULT: withOpacity("--fg"),
+          muted: withOpacity("--fg-muted"),
+          subtle: withOpacity("--fg-subtle"),
         },
+        primary: {
+          DEFAULT: withOpacity("--primary"),
+          fg: withOpacity("--primary-fg"),
+          hover: withOpacity("--primary-hover"),
+          soft: withOpacity("--primary-soft"),
+        },
+
+        // --- Indigo/violet accent scale (brand-* keeps working everywhere) ---
+        brand: {
+          50: "#eef2ff",
+          100: "#e0e7ff",
+          200: "#c7d2fe",
+          300: "#a5b4fc",
+          400: "#818cf8",
+          500: "#6366f1",
+          600: "#4f46e5",
+          700: "#4338ca",
+          800: "#3730a3",
+          900: "#312e81",
+        },
+        // Kept so any stray references still resolve; mapped to neutral darks.
         dark: {
-          900: "#0a0a0f",
-          800: "#12121a",
-          700: "#1a1a26",
-          600: "#22222f",
-          500: "#2e2e3e",
+          900: "#0b0c14",
+          800: "#12131c",
+          700: "#1a1c28",
+          600: "#242636",
+          500: "#2e3145",
         },
       },
       backgroundImage: {
         "hero-gradient":
-          "radial-gradient(ellipse at 30% 40%, rgba(249,115,22,0.18) 0%, transparent 60%), radial-gradient(ellipse at 80% 80%, rgba(168,85,247,0.12) 0%, transparent 60%), linear-gradient(135deg, #0a0a0f 0%, #12121a 100%)",
+          "radial-gradient(ellipse at 25% 20%, rgb(var(--primary) / 0.18) 0%, transparent 55%), radial-gradient(ellipse at 85% 80%, rgb(var(--accent-2) / 0.16) 0%, transparent 55%)",
         "card-gradient":
-          "linear-gradient(135deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.01) 100%)",
+          "linear-gradient(135deg, rgb(var(--fg) / 0.04) 0%, rgb(var(--fg) / 0.01) 100%)",
       },
       animation: {
         "fade-up": "fadeUp 0.6s ease forwards",
@@ -52,10 +73,7 @@ export default {
           from: { opacity: 0, transform: "translateY(24px)" },
           to: { opacity: 1, transform: "translateY(0)" },
         },
-        fadeIn: {
-          from: { opacity: 0 },
-          to: { opacity: 1 },
-        },
+        fadeIn: { from: { opacity: 0 }, to: { opacity: 1 } },
         slideRight: {
           from: { opacity: 0, transform: "translateX(-24px)" },
           to: { opacity: 1, transform: "translateX(0)" },
@@ -70,9 +88,10 @@ export default {
         },
       },
       boxShadow: {
-        glow: "0 0 40px rgba(249,115,22,0.25)",
-        "glow-sm": "0 0 20px rgba(249,115,22,0.15)",
-        card: "0 8px 32px rgba(0,0,0,0.4)",
+        glow: "0 0 40px rgb(var(--primary) / 0.28)",
+        "glow-sm": "0 0 20px rgb(var(--primary) / 0.18)",
+        card: "0 1px 2px rgb(15 18 30 / 0.04), 0 8px 24px rgb(15 18 30 / 0.06)",
+        "card-lg": "0 2px 4px rgb(15 18 30 / 0.05), 0 18px 48px rgb(15 18 30 / 0.10)",
       },
     },
   },

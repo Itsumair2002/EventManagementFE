@@ -2,11 +2,73 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ============================================================
+   Design tokens — semantic colors that flip per theme.
+   Values are space-separated RGB channels so Tailwind can add
+   an alpha channel via rgb(var(--token) / <alpha>).
+   ============================================================ */
 @layer base {
-  html { scroll-behavior: smooth; }
+  :root {
+    /* Light theme (default) */
+    --bg: 247 248 251;          /* page background   #f7f8fb */
+    --surface: 255 255 255;     /* cards / panels     #ffffff */
+    --elevated: 255 255 255;    /* raised surfaces */
+    --border: 226 229 238;      /* hairlines          #e2e5ee */
+    --fg: 17 20 34;             /* primary text       #111422 */
+    --fg-muted: 82 89 107;      /* secondary text     #52596b */
+    --fg-subtle: 132 139 158;   /* tertiary text      #848b9e */
+
+    --primary: 79 70 229;       /* indigo-600         #4f46e5 */
+    --primary-hover: 67 56 202; /* indigo-700 */
+    --primary-fg: 255 255 255;  /* text on primary */
+    --primary-soft: 238 242 255;/* indigo-50 tint */
+    --accent-2: 139 92 246;     /* violet-500 (gradients) */
+
+    --ring: 99 102 241;
+    color-scheme: light;
+  }
+
+  .dark {
+    --bg: 10 11 18;             /* page background   #0a0b12 */
+    --surface: 22 24 34;        /* cards / panels    #161822 */
+    --elevated: 30 33 46;       /* raised surfaces   #1e212e */
+    --border: 42 46 63;         /* hairlines         #2a2e3f */
+    --fg: 236 238 245;          /* primary text */
+    --fg-muted: 158 164 184;    /* secondary text */
+    --fg-subtle: 108 115 138;   /* tertiary text */
+
+    --primary: 129 140 248;     /* indigo-400 (brighter on dark) */
+    --primary-hover: 99 102 241;/* indigo-500 */
+    --primary-fg: 255 255 255;
+    --primary-soft: 30 30 58;   /* deep indigo tint */
+    --accent-2: 167 139 250;    /* violet-400 */
+
+    --ring: 129 140 248;
+    color-scheme: dark;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
   body {
-    background-color: #0a0a0f;
-    color: #f1f5f9;
-    font-family: 'DM Sans', sans-serif;
+    background-color: rgb(var(--bg));
+    color: rgb(var(--fg));
+    font-family: "Inter", "DM Sans", sans-serif;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    transition: background-color 0.3s ease, color 0.3s ease;
+  }
+
+  /* Smooth theme transitions on common surfaces without janking transforms. */
+  a, button, input, textarea, select {
+    transition-property: color, background-color, border-color, box-shadow, transform, opacity;
+    transition-duration: 0.2s;
+    transition-timing-function: ease;
+  }
+
+  :focus-visible {
+    outline: 2px solid rgb(var(--ring));
+    outline-offset: 2px;
   }
 }

@@ -1,62 +1,47 @@
 import { Link } from 'react-router-dom'
 import { useSelector, useDispatch } from 'react-redux'
-// import { fetchEvents, setSelectedEvent } from '../store/slices/EventSlice.js'
+import { useEffect, useState } from 'react'
 import EventCard from '../components/ui/EventCard.jsx'
-import { useEffect } from 'react'
 import { fetchCategories } from '../store/slices/CategorySlice.js'
 import { fetchEvents } from '../store/slices/EventSlice.js'
-
-const categories = [
-  { name: 'Music', icon: '🎵', count: 24 },
-  { name: 'Tech', icon: '💻', count: 18 },
-  { name: 'Art', icon: '🎨', count: 12 },
-  { name: 'Comedy', icon: '😂', count: 9 },
-  { name: 'Sports', icon: '⚡', count: 21 },
-  { name: 'Food', icon: '🍽️', count: 15 },
-]
+import AIRecommendations from '../components/ai/AIRecommendations.jsx'
+import { resolveEventImage, eventPlaceholder, categoryMeta } from '../utils/media.js'
 
 const stats = [
-  { value: '50K+', label: 'Happy Attendees' },
-  { value: '1.2K', label: 'Events Hosted' },
-  { value: '98%', label: 'Satisfaction Rate' },
-  { value: '200+', label: 'Cities Covered' },
+  { value: '50K+', label: 'Happy attendees' },
+  { value: '1.2K', label: 'Events hosted' },
+  { value: '98%', label: 'Satisfaction' },
+  { value: '200+', label: 'Cities' },
 ]
 
+const Eyebrow = ({ children }) => (
+  <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-primary/20 bg-primary/10 text-primary text-xs font-semibold tracking-wide uppercase">
+    <span className="w-1.5 h-1.5 rounded-full bg-primary" />
+    {children}
+  </span>
+)
+
 export default function HomePage() {
-   const { featuredEvents } = useSelector(s => s.events)
   const { eventList, loading: eventsLoading, error: eventsError } = useSelector((state) => state?.event)
   const { categoryList, loading: categoriesLoading, error: categoriesError } = useSelector((state) => state?.category)
+  const [query, setQuery] = useState('')
   const dispatch = useDispatch()
-  
+
   useEffect(() => {
     dispatch(fetchCategories())
     dispatch(fetchEvents())
   }, [dispatch])
 
-  // Skeleton Components
-  const CategorySkeleton = () => (
-    <div className="glass-card rounded-2xl p-5 flex flex-col items-center gap-2 text-center animate-pulse">
-      <div className="w-16 h-4 bg-white/10 rounded-full mb-1" />
-      <div className="w-24 h-3 bg-white/5 rounded-full" />
-    </div>
-  )
+  const events = eventList?.events || []
+  const heroImages = events.slice(0, 4)
 
   const EventSkeleton = () => (
-    <div className="glass-card rounded-2xl overflow-hidden border border-white/5 animate-pulse">
-      <div className="aspect-[16/10] bg-white/10" />
-      <div className="p-5 space-y-4">
-        <div className="flex justify-between items-center">
-          <div className="w-16 h-4 bg-white/10 rounded-full" />
-          <div className="w-8 h-4 bg-white/10 rounded-full" />
-        </div>
-        <div className="space-y-2">
-          <div className="w-full h-5 bg-white/10 rounded-lg" />
-          <div className="w-2/3 h-5 bg-white/10 rounded-lg" />
-        </div>
-        <div className="flex gap-2 pt-2">
-          <div className="w-4 h-4 bg-white/10 rounded-full" />
-          <div className="w-24 h-4 bg-white/5 rounded-md" />
-        </div>
+    <div className="glass-card rounded-2xl overflow-hidden border border-line animate-pulse">
+      <div className="h-44 bg-fg/10" />
+      <div className="p-4 space-y-3">
+        <div className="w-2/3 h-5 bg-fg/10 rounded-lg" />
+        <div className="w-full h-4 bg-fg/5 rounded-lg" />
+        <div className="w-1/2 h-4 bg-fg/5 rounded-lg" />
       </div>
     </div>
   )
@@ -64,14 +49,11 @@ export default function HomePage() {
   const ErrorState = ({ message, onRetry }) => (
     <div className="col-span-full py-10 flex flex-col items-center justify-center glass-card rounded-3xl border border-red-500/20 bg-red-500/5">
       <div className="w-12 h-12 rounded-2xl bg-red-500/10 flex items-center justify-center text-2xl mb-4">⚠️</div>
-      <h3 className="text-white font-semibold mb-2">Oops! Something went wrong</h3>
-      <p className="text-slate-400 text-sm mb-6 max-w-md text-center">
-        {message || "We encountered an error while fetching the data. Please check your connection and try again."}
+      <h3 className="text-fg font-semibold mb-2">Something went wrong</h3>
+      <p className="text-fg-muted text-sm mb-6 max-w-md text-center">
+        {message || 'We could not load the data. Please check your connection and try again.'}
       </p>
-      <button 
-        onClick={onRetry}
-        className="px-6 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white text-sm transition-all border border-white/10"
-      >
+      <button onClick={onRetry} className="px-6 py-2 rounded-xl bg-primary hover:bg-primary-hover text-primary-fg text-sm font-medium transition-all">
         Try Again
       </button>
     </div>
@@ -80,93 +62,107 @@ export default function HomePage() {
   return (
     <div className="overflow-x-hidden">
       {/* ── Hero ── */}
-      <section className="relative min-h-[92vh] flex items-center hero-grid bg-hero-gradient">
-        {/* Decorative blobs */}
-        <div className="absolute inset-0 pointer-events-none overflow-hidden">
-          <div className="absolute -top-32 -left-32 w-96 h-96 rounded-full bg-brand-500/10 blur-[100px]" />
-          <div className="absolute top-1/2 -right-20 w-72 h-72 rounded-full bg-purple-500/10 blur-[80px]" />
-          <div className="absolute bottom-0 left-1/3 w-64 h-64 rounded-full bg-brand-600/8 blur-[80px]" />
+      <section className="relative overflow-hidden">
+        <div className="absolute inset-0 pointer-events-none">
+          <div className="absolute -top-40 -left-24 w-[32rem] h-[32rem] rounded-full bg-primary/15 blur-[120px]" />
+          <div className="absolute top-10 right-0 w-[28rem] h-[28rem] rounded-full bg-fuchsia-500/10 blur-[120px]" />
         </div>
 
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
-          <div className="max-w-3xl">
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full glass-card border border-brand-500/20 text-brand-400 text-xs font-mono mb-6 animate-fade-in">
-              <span className="w-1.5 h-1.5 rounded-full bg-brand-400 animate-pulse" />
-              Smart Ticketing Platform
-            </div>
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-14 pb-16 lg:pt-20 lg:pb-24">
+          <div className="grid lg:grid-cols-[1.05fr_0.95fr] gap-12 items-center">
+            {/* Left: copy */}
+            <div>
+              <Eyebrow>Smart ticketing platform</Eyebrow>
 
-            <h1 className="font-display font-black text-5xl md:text-7xl text-white leading-[1.05] mb-6 animate-fade-up">
-              Discover &amp;{' '}
-              <span className="gradient-text">Book</span>
-              <br />
-              Extraordinary
-              <br />
-              Experiences
-            </h1>
+              <h1 className="font-display font-extrabold text-[2.6rem] leading-[1.06] sm:text-6xl text-fg mt-6 tracking-tight">
+                Where great
+                <br />
+                nights <span className="gradient-text">begin.</span>
+              </h1>
 
-            <p className="text-slate-400 text-lg md:text-xl max-w-2xl mb-8 leading-relaxed" style={{ animationDelay: '0.1s' }}>
-              From concerts to conferences — explore thousands of events, book instantly,
-              and enter with a unique QR code. Your next great experience is one click away.
-            </p>
+              <p className="text-fg-muted text-lg max-w-xl mt-6 leading-relaxed">
+                Discover concerts, conferences and everything in between. Book in seconds,
+                and walk in with a single QR code — no queues, no printing.
+              </p>
 
-            <div className="flex flex-col sm:flex-row gap-4" style={{ animationDelay: '0.2s' }}>
-              <Link
-                to="/events"
-                className="px-8 py-4 rounded-2xl bg-brand-500 hover:bg-brand-400 text-white font-semibold text-base transition-all hover:shadow-glow inline-flex items-center gap-2 justify-center"
+              {/* Search */}
+              <form
+                onSubmit={(e) => e.preventDefault()}
+                className="mt-8 flex items-center gap-2 p-2 pl-4 rounded-2xl bg-surface border border-line shadow-card focus-within:border-primary/50 focus-within:shadow-glow-sm transition-all max-w-xl"
               >
-                Browse Events
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" /></svg>
-              </Link>
-              <Link
-                to="/register"
-                className="px-8 py-4 rounded-2xl glass-card border border-white/10 hover:border-white/20 text-white font-semibold text-base transition-all inline-flex items-center justify-center"
-              >
-                Create Account
-              </Link>
-            </div>
+                <svg className="w-5 h-5 text-fg-subtle shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+                <input
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  type="text"
+                  placeholder="Search events, venues, artists…"
+                  className="flex-1 min-w-0 bg-transparent text-sm text-fg placeholder-fg-subtle outline-none"
+                />
+                <Link
+                  to={`/events${query ? `?q=${encodeURIComponent(query)}` : ''}`}
+                  className="px-5 py-2.5 rounded-xl bg-primary hover:bg-primary-hover text-primary-fg text-sm font-semibold transition-colors shrink-0"
+                >
+                  Search
+                </Link>
+              </form>
 
-            {/* Search bar */}
-            <div className="mt-10 flex items-center gap-3 p-2 pl-5 rounded-2xl glass-card border border-white/10 hover:border-brand-500/30 transition-all max-w-xl">
-              <svg className="w-4 h-4 text-slate-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
-              <input
-                type="text"
-                placeholder="Search events, venues, artists..."
-                className="flex-1 bg-transparent text-sm text-white placeholder-slate-600 outline-none"
-              />
-              <Link to="/events" className="px-4 py-2 rounded-xl bg-brand-500 text-white text-sm font-medium hover:bg-brand-400 transition-colors shrink-0">
-                Search
-              </Link>
-            </div>
-          </div>
-
-          {/* Floating stats card */}
-          <div className="absolute right-8 top-1/2 -translate-y-1/2 hidden xl:block">
-            <div className="glass-card rounded-3xl p-6 border border-white/10 animate-float w-52">
-              <div className="text-center mb-4">
-                <div className="stat-number text-4xl mb-1">50K</div>
-                <p className="text-slate-500 text-xs">Happy attendees</p>
-              </div>
-              <div className="space-y-2">
-                {['Neon Nights', 'TechSummit', 'Comedy Night'].map((e, i) => (
-                  <div key={i} className="flex items-center gap-2 p-2 rounded-xl bg-white/[0.03]">
-                    <div className={`w-6 h-6 rounded-lg shrink-0 ${['bg-brand-500', 'bg-purple-500', 'bg-green-500'][i]}`} />
-                    <span className="text-white text-xs truncate">{e}</span>
+              <div className="mt-6 flex flex-wrap items-center gap-x-6 gap-y-3">
+                <Link to="/events" className="text-sm font-semibold text-fg hover:text-primary inline-flex items-center gap-1.5 transition-colors">
+                  Browse all events
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" /></svg>
+                </Link>
+                <div className="flex items-center gap-2 text-sm text-fg-muted">
+                  <div className="flex -space-x-2">
+                    {['bg-pink-500', 'bg-indigo-500', 'bg-emerald-500', 'bg-amber-500'].map((c, i) => (
+                      <span key={i} className={`w-6 h-6 rounded-full ring-2 ring-canvas ${c}`} />
+                    ))}
                   </div>
-                ))}
+                  Joined by 50,000+ people
+                </div>
+              </div>
+            </div>
+
+            {/* Right: live event collage */}
+            <div className="relative">
+              {heroImages.length > 0 ? (
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-4 pt-8">
+                    {heroImages.slice(0, 2).map((ev) => (
+                      <HeroTile key={ev._id} event={ev} />
+                    ))}
+                  </div>
+                  <div className="space-y-4">
+                    {heroImages.slice(2, 4).map((ev) => (
+                      <HeroTile key={ev._id} event={ev} />
+                    ))}
+                    {heroImages.length < 3 && <HeroTile event={heroImages[0]} />}
+                  </div>
+                </div>
+              ) : (
+                <div className="aspect-square rounded-3xl glass-card border border-line animate-pulse" />
+              )}
+
+              {/* Floating stat chip */}
+              <div className="absolute -bottom-5 left-1/2 -translate-x-1/2 glass-card rounded-2xl px-5 py-3 border border-line shadow-card-lg flex items-center gap-3 whitespace-nowrap">
+                <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/15 text-primary text-lg">✦</span>
+                <div>
+                  <p className="text-fg font-bold text-sm leading-none">{events.length || '200'}+ live events</p>
+                  <p className="text-fg-subtle text-xs mt-1">updated in real time</p>
+                </div>
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* ── Stats ── */}
-      <section className="py-16 border-y border-white/[0.04]">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+      {/* ── Stats strip ── */}
+      <section className="border-y border-line bg-surface/40">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
             {stats.map((stat, i) => (
               <div key={i} className="text-center">
-                <div className="stat-number mb-1">{stat.value}</div>
-                <p className="text-slate-500 text-sm">{stat.label}</p>
+                <div className="font-display font-extrabold text-3xl md:text-4xl text-fg">{stat.value}</div>
+                <p className="text-fg-muted text-sm mt-1">{stat.label}</p>
               </div>
             ))}
           </div>
@@ -177,62 +173,59 @@ export default function HomePage() {
       <section className="py-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-end justify-between mb-10">
           <div>
-            <p className="text-brand-400 text-sm font-mono mb-2">// BROWSE BY</p>
-            <h2 className="font-display font-bold text-3xl md:text-4xl text-white">Event Categories</h2>
+            <Eyebrow>Browse by</Eyebrow>
+            <h2 className="font-display font-bold text-3xl md:text-4xl text-fg mt-4">Find your scene</h2>
           </div>
-          <Link to="/events" className="text-brand-400 text-sm hover:text-brand-300 transition-colors hidden md:block">
-            View all →
-          </Link>
+          <Link to="/events" className="text-primary text-sm font-semibold hover:underline hidden md:block">View all →</Link>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
           {categoriesLoading ? (
-            Array(6).fill(0).map((_, i) => <CategorySkeleton key={i} />)
+            Array(4).fill(0).map((_, i) => <div key={i} className="h-28 glass-card rounded-2xl animate-pulse" />)
           ) : categoriesError ? (
-            <ErrorState 
-              message={categoriesError?.message || categoriesError} 
-              onRetry={() => dispatch(fetchCategories())} 
-            />
+            <ErrorState message={categoriesError?.message || categoriesError} onRetry={() => dispatch(fetchCategories())} />
           ) : (
-            categoryList?.categories?.map((cat, i) => (
-              <Link
-                key={i}
-                to={`/events?category=${cat.categoryName}`}
-                className="glass-card glass-card-hover rounded-2xl p-5 flex flex-col items-center gap-2 text-center group"
-              >
-                <span className="text-white text-sm font-medium">{cat.categoryName}</span>
-                <span className="text-slate-600 text-xs font-mono line-clamp-1">{cat.description}</span>
-              </Link>
-            ))
+            categoryList?.categories?.map((cat, i) => {
+              const meta = categoryMeta(cat.categoryName)
+              return (
+                <Link
+                  key={i}
+                  to={`/events?category=${cat.categoryName}`}
+                  className={`group relative overflow-hidden rounded-2xl border border-line bg-gradient-to-br ${meta.grad} p-5 hover:border-primary/40 hover:-translate-y-1 transition-all`}
+                >
+                  <div className="w-12 h-12 rounded-2xl bg-surface/80 backdrop-blur flex items-center justify-center text-2xl mb-4 shadow-card">
+                    {meta.icon}
+                  </div>
+                  <p className="text-fg font-semibold">{cat.categoryName}</p>
+                  <p className="text-fg-subtle text-xs mt-0.5 line-clamp-1">{cat.description || 'Explore events'}</p>
+                  <svg className="w-4 h-4 text-primary absolute top-5 right-5 opacity-0 group-hover:opacity-100 transition-opacity" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" /></svg>
+                </Link>
+              )
+            })
           )}
         </div>
       </section>
 
-      {/* ── Events ── */}
-      <section className="py-20 bg-dark-800/30">
+      <AIRecommendations />
+
+      {/* ── Featured Events ── */}
+      <section className="py-20 bg-surface/40 border-y border-line">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-end justify-between mb-10">
             <div>
-              <p className="text-brand-400 text-sm font-mono mb-2">// HANDPICKED</p>
-              <h2 className="font-display font-bold text-3xl md:text-4xl text-white">Featured Events</h2>
+              <Eyebrow>Handpicked</Eyebrow>
+              <h2 className="font-display font-bold text-3xl md:text-4xl text-fg mt-4">Featured events</h2>
             </div>
-            <Link to="/events" className="text-brand-400 text-sm hover:text-brand-300 transition-colors hidden md:block">
-              View all events →
-            </Link>
+            <Link to="/events" className="text-primary text-sm font-semibold hover:underline hidden md:block">View all events →</Link>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
             {eventsLoading ? (
               Array(4).fill(0).map((_, i) => <EventSkeleton key={i} />)
             ) : eventsError ? (
-              <ErrorState 
-                message={eventsError?.message || eventsError} 
-                onRetry={() => dispatch(fetchEvents())} 
-              />
+              <ErrorState message={eventsError?.message || eventsError} onRetry={() => dispatch(fetchEvents())} />
             ) : (
-              eventList?.events?.map(event => (
-                <EventCard key={event._id} event={event} />
-              ))
+              events.slice(0, 8).map(event => <EventCard key={event._id} event={event} />)
             )}
           </div>
         </div>
@@ -241,53 +234,72 @@ export default function HomePage() {
       {/* ── How It Works ── */}
       <section className="py-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-14">
-          <p className="text-brand-400 text-sm font-mono mb-2">// HOW IT WORKS</p>
-          <h2 className="font-display font-bold text-3xl md:text-4xl text-white">Book in 3 Simple Steps</h2>
+          <div className="flex justify-center"><Eyebrow>How it works</Eyebrow></div>
+          <h2 className="font-display font-bold text-3xl md:text-4xl text-fg mt-4">Book in three simple steps</h2>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 relative">
-          <div className="hidden md:block absolute top-12 left-1/3 right-1/3 h-px bg-gradient-to-r from-brand-500/50 to-purple-500/50" />
-
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {[
-            { step: '01', title: 'Find Your Event', desc: 'Browse thousands of events filtered by category, location, or date.', icon: '🔍' },
-            { step: '02', title: 'Book & Pay', desc: 'Select your tickets, complete payment securely with multiple options.', icon: '💳' },
-            { step: '03', title: 'Enter with QR', desc: 'Get a unique QR code for each ticket. Scan at the venue entry gate.', icon: '📱' },
+            { step: '01', title: 'Find your event', desc: 'Browse thousands of events filtered by category, city, or date.', icon: '🔍' },
+            { step: '02', title: 'Book & pay', desc: 'Pick your tickets and check out securely in a few taps.', icon: '💳' },
+            { step: '03', title: 'Enter with QR', desc: 'Get a unique QR code per ticket. Scan it at the venue gate.', icon: '📱' },
           ].map((step, i) => (
-            <div key={i} className="glass-card rounded-3xl p-8 border border-white/[0.06] relative text-center">
-              <div className="w-12 h-12 rounded-2xl bg-brand-500/10 border border-brand-500/20 flex items-center justify-center text-2xl mx-auto mb-4">
+            <div key={i} className="glass-card rounded-3xl p-8 border border-line relative">
+              <div className="w-12 h-12 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center text-2xl mb-5">
                 {step.icon}
               </div>
-              <div className="absolute top-6 right-6 font-mono text-xs text-brand-500/40 font-bold">{step.step}</div>
-              <h3 className="font-display font-bold text-xl text-white mb-3">{step.title}</h3>
-              <p className="text-slate-500 text-sm leading-relaxed">{step.desc}</p>
+              <div className="absolute top-7 right-7 font-display font-extrabold text-2xl text-primary/15">{step.step}</div>
+              <h3 className="font-display font-bold text-xl text-fg mb-2">{step.title}</h3>
+              <p className="text-fg-muted text-sm leading-relaxed">{step.desc}</p>
             </div>
           ))}
         </div>
       </section>
 
       {/* ── CTA ── */}
-      <section className="py-20">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="border-animate rounded-3xl p-px">
-            <div className="rounded-3xl bg-dark-800 p-12 text-center">
-              <h2 className="font-display font-black text-4xl md:text-5xl text-white mb-4">
-                Ready to Experience{' '}
-                <span className="gradient-text">More?</span>
-              </h2>
-              <p className="text-slate-400 text-lg mb-8 max-w-xl mx-auto">
-                Join 50,000+ event-goers who trust Vibe Check for seamless experiences.
-              </p>
-              <Link
-                to="/register"
-                className="inline-flex items-center gap-2 px-8 py-4 rounded-2xl bg-brand-500 hover:bg-brand-400 text-white font-semibold transition-all hover:shadow-glow"
-              >
-                Get Started Free
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" /></svg>
-              </Link>
-            </div>
+      <section className="pb-24 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-5xl mx-auto relative overflow-hidden rounded-3xl bg-gradient-to-br from-brand-600 to-brand-800 px-8 py-14 text-center">
+          <div className="absolute inset-0 opacity-20 hero-grid" />
+          <div className="relative">
+            <h2 className="font-display font-extrabold text-4xl md:text-5xl text-white mb-4">
+              Ready to experience more?
+            </h2>
+            <p className="text-white/80 text-lg mb-8 max-w-xl mx-auto">
+              Join 50,000+ event-goers who trust Vibe Check for seamless nights out.
+            </p>
+            <Link
+              to="/register"
+              className="inline-flex items-center gap-2 px-8 py-4 rounded-2xl bg-white text-brand-700 font-semibold hover:bg-white/90 transition-all"
+            >
+              Get started free
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" /></svg>
+            </Link>
           </div>
         </div>
       </section>
     </div>
+  )
+}
+
+// Small image tile used in the hero collage.
+function HeroTile({ event }) {
+  if (!event) return null
+  return (
+    <Link
+      to={`/events/${event._id}`}
+      className="group block relative rounded-2xl overflow-hidden border border-line shadow-card aspect-[4/5]"
+    >
+      <img
+        src={resolveEventImage(event)}
+        alt={event.eventName}
+        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+        onError={(e) => { e.target.onerror = null; e.target.src = eventPlaceholder(event) }}
+      />
+      <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/10 to-transparent" />
+      <div className="absolute bottom-0 left-0 right-0 p-3">
+        <p className="text-white text-sm font-semibold leading-tight line-clamp-2">{event.eventName}</p>
+        <p className="text-white/70 text-xs mt-1 truncate">{event.venue}</p>
+      </div>
+    </Link>
   )
 }

@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react'
 import { useSelector, useDispatch } from 'react-redux'
 import { setSelectedTickets, createBookingThunk } from '../store/slices/bookingSlice.js'
 import { fetchSingleEvents } from '../store/slices/EventSlice.js'
+import { resolveEventImage, eventPlaceholder } from '../utils/media.js'
 
 export default function EventDetailPage() {
   const { id } = useParams()
@@ -24,18 +25,18 @@ export default function EventDetailPage() {
   if (loading) return (
     <div className="min-h-[70vh] flex flex-col items-center justify-center">
       <div className="w-12 h-12 rounded-full border-2 border-brand-500/20 border-t-brand-500 animate-spin mb-4" />
-      <p className="text-slate-400 animate-pulse font-mono text-sm tracking-widest uppercase">Loading Event Details</p>
+      <p className="text-fg-muted animate-pulse font-mono text-sm tracking-widest uppercase">Loading Event Details</p>
     </div>
   )
 
   if (error || !event) return (
     <div className="min-h-[70vh] flex items-center justify-center px-4">
-      <div className="max-w-md w-full glass-card rounded-3xl p-8 border border-white/10 text-center">
+      <div className="max-w-md w-full glass-card rounded-3xl p-8 border border-line text-center">
         <div className="w-16 h-16 rounded-2xl bg-red-500/10 flex items-center justify-center text-3xl mx-auto mb-6">⚠️</div>
-        <h3 className="font-display font-bold text-2xl text-white mb-2">
+        <h3 className="font-display font-bold text-2xl text-fg mb-2">
           {error ? 'Failed to load event' : 'Event not found'}
         </h3>
-        <p className="text-slate-500 mb-8 leading-relaxed">
+        <p className="text-fg-muted mb-8 leading-relaxed">
           {error?.message || error || "The event you're looking for might have been cancelled or the link is invalid."}
         </p>
         <div className="flex flex-col gap-3">
@@ -47,7 +48,7 @@ export default function EventDetailPage() {
               Try Again
             </button>
           )}
-          <Link to="/events" className="w-full py-3 rounded-xl glass-card border border-white/10 text-white font-medium hover:bg-white/5 transition-all">
+          <Link to="/events" className="w-full py-3 rounded-xl glass-card border border-line text-fg font-medium hover:bg-fg/5 transition-all">
             Browse Other Events
           </Link>
         </div>
@@ -71,12 +72,7 @@ export default function EventDetailPage() {
   const total = price * selectedTickets;
   const occupancy = Math.round((1 - available / totalSeats) * 100);
   
-  const baseUrl = import.meta.env.VITE_API_BASE_URL?.replace(/\/api$/, '') || '';
-  const imageUrl = event.imageUrl
-    ? (event.imageUrl.startsWith('http') || event.imageUrl.startsWith('blob')
-        ? event.imageUrl
-        : `${baseUrl}${event.imageUrl.startsWith('/') ? '' : '/'}${event.imageUrl}`)
-    : 'https://placehold.co/600x400/1a1a1a/fff?text=No+Image';
+  const imageUrl = resolveEventImage(event);
 
   const categoryName = typeof event.category === 'object' && event.category !== null 
     ? event.category.categoryName 
@@ -96,18 +92,18 @@ export default function EventDetailPage() {
           src={imageUrl} 
           alt={event.eventName} 
           className="w-full h-full object-cover" 
-          onError={(e) => { e.target.src = 'https://placehold.co/600x400/1a1a1a/fff?text=No+Image' }}
+          onError={(e) => { e.target.onerror = null; e.target.src = eventPlaceholder(event) }}
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-dark-900 via-dark-900/60 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-canvas via-canvas/60 to-transparent" />
         <div className="absolute bottom-0 left-0 right-0 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-8">
-          <Link to="/events" className="inline-flex items-center gap-1 text-slate-400 text-sm hover:text-white mb-4 transition-colors">
+          <Link to="/events" className="inline-flex items-center gap-1 text-fg-muted text-sm hover:text-fg mb-4 transition-colors">
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
             Back to Events
           </Link>
           <div className="flex flex-wrap items-start gap-3">
             <span className="tag-badge">{categoryName}</span>
             {event.tags?.map(tag => (
-              <span key={tag} className="text-xs text-slate-500 bg-white/5 px-2 py-0.5 rounded">#{tag}</span>
+              <span key={tag} className="text-xs text-fg-muted bg-fg/5 px-2 py-0.5 rounded">#{tag}</span>
             ))}
           </div>
         </div>
@@ -120,11 +116,11 @@ export default function EventDetailPage() {
           <div className="lg:col-span-2">
             <div className="flex items-start justify-between gap-4 mb-6">
               <div>
-                <h1 className="font-display font-bold text-3xl md:text-4xl text-white mb-3">{event.eventName}</h1>
-                <div className="flex items-center gap-4 text-slate-400 text-sm">
+                <h1 className="font-display font-bold text-3xl md:text-4xl text-fg mb-3">{event.eventName}</h1>
+                <div className="flex items-center gap-4 text-fg-muted text-sm">
                   <span className="flex items-center gap-1">
                     <span className="text-yellow-400">★</span>
-                    <strong className="text-white">{event.rating || '4.5'}</strong>
+                    <strong className="text-fg">{event.rating || '4.5'}</strong>
                   </span>
                   <span>by {organizerName}</span>
                 </div>
@@ -138,33 +134,33 @@ export default function EventDetailPage() {
                 { icon: '📍', label: 'Venue', value: event.venue || event.location },
                 { icon: '🎟️', label: 'Tickets', value: `${available} of ${totalSeats} available` },
               ].map((m, i) => (
-                <div key={i} className="glass-card rounded-2xl p-4 border border-white/[0.06]">
+                <div key={i} className="glass-card rounded-2xl p-4 border border-line">
                   <div className="text-xl mb-1.5">{m.icon}</div>
-                  <p className="text-slate-500 text-xs mb-0.5">{m.label}</p>
-                  <p className="text-white text-sm font-medium">{m.value}</p>
+                  <p className="text-fg-muted text-xs mb-0.5">{m.label}</p>
+                  <p className="text-fg text-sm font-medium">{m.value}</p>
                 </div>
               ))}
             </div>
 
             {/* Tabs */}
-            <div className="flex gap-1 mb-5 p-1 rounded-xl glass-card border border-white/[0.06] w-fit">
+            <div className="flex gap-1 mb-5 p-1 rounded-xl glass-card border border-line w-fit">
               {['about', 'venue', 'organizer'].map(tab => (
                 <button
                   key={tab}
                   onClick={() => setActiveTab(tab)}
-                  className={`px-4 py-2 rounded-lg text-sm font-medium capitalize transition-all ${activeTab === tab ? 'bg-brand-500 text-white' : 'text-slate-400 hover:text-white'}`}
+                  className={`px-4 py-2 rounded-lg text-sm font-medium capitalize transition-all ${activeTab === tab ? 'bg-primary text-primary-fg' : 'text-fg-muted hover:text-fg'}`}
                 >
                   {tab}
                 </button>
               ))}
             </div>
 
-            <div className="glass-card rounded-2xl p-6 border border-white/[0.06]">
+            <div className="glass-card rounded-2xl p-6 border border-line">
               {activeTab === 'about' && (
                 <div>
-                  <h3 className="font-semibold text-white mb-3">About this Event</h3>
-                  <p className="text-slate-400 leading-relaxed">{event.description || 'No description provided.'}</p>
-                  <p className="text-slate-500 leading-relaxed mt-3">
+                  <h3 className="font-semibold text-fg mb-3">About this Event</h3>
+                  <p className="text-fg-muted leading-relaxed">{event.description || 'No description provided.'}</p>
+                  <p className="text-fg-muted leading-relaxed mt-3">
                     Join us for an unforgettable experience that will leave you inspired, entertained, and wanting more.
                     This event is designed to bring together like-minded individuals in a world-class venue.
                   </p>
@@ -172,24 +168,24 @@ export default function EventDetailPage() {
               )}
               {activeTab === 'venue' && (
                 <div>
-                  <h3 className="font-semibold text-white mb-3">Venue Information</h3>
-                  <p className="text-slate-400">{event.venue}</p>
-                  <p className="text-slate-500 text-sm mt-1">{event.location}</p>
-                  <div className="mt-4 h-40 rounded-xl bg-white/[0.03] border border-white/[0.06] flex items-center justify-center">
-                    <p className="text-slate-600 text-sm">Map placeholder</p>
+                  <h3 className="font-semibold text-fg mb-3">Venue Information</h3>
+                  <p className="text-fg-muted">{event.venue}</p>
+                  <p className="text-fg-muted text-sm mt-1">{event.location}</p>
+                  <div className="mt-4 h-40 rounded-xl bg-fg/[0.03] border border-line flex items-center justify-center">
+                    <p className="text-fg-subtle text-sm">Map placeholder</p>
                   </div>
                 </div>
               )}
               {activeTab === 'organizer' && (
                 <div>
-                  <h3 className="font-semibold text-white mb-3">Organized by</h3>
+                  <h3 className="font-semibold text-fg mb-3">Organized by</h3>
                   <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 rounded-xl bg-brand-500/10 border border-brand-500/20 flex items-center justify-center text-brand-400 font-bold uppercase">
+                    <div className="w-12 h-12 rounded-xl bg-brand-500/10 border border-brand-500/20 flex items-center justify-center text-primary font-bold uppercase">
                       {organizerName[0]}
                     </div>
                     <div>
-                      <p className="text-white font-medium">{organizerName}</p>
-                      <p className="text-slate-500 text-sm">{event.createdBy?.email ? event.createdBy.email : 'Verified Organizer'}</p>
+                      <p className="text-fg font-medium">{organizerName}</p>
+                      <p className="text-fg-muted text-sm">{event.createdBy?.email ? event.createdBy.email : 'Verified Organizer'}</p>
                     </div>
                   </div>
                 </div>
@@ -199,19 +195,19 @@ export default function EventDetailPage() {
 
           {/* Booking Sidebar */}
           <div className="lg:col-span-1">
-            <div className="sticky top-24 glass-card rounded-3xl p-6 border border-white/10">
+            <div className="sticky top-24 glass-card rounded-3xl p-6 border border-line">
               <div className="flex items-baseline justify-between mb-1">
-                <span className="font-display font-bold text-3xl text-white">₹{price.toLocaleString()}</span>
-                <span className="text-slate-500 text-sm">/ ticket</span>
+                <span className="font-display font-bold text-3xl text-fg">₹{price.toLocaleString()}</span>
+                <span className="text-fg-muted text-sm">/ ticket</span>
               </div>
 
               {/* Occupancy */}
               <div className="mt-4 mb-5">
-                <div className="flex justify-between text-xs text-slate-500 mb-1.5">
+                <div className="flex justify-between text-xs text-fg-muted mb-1.5">
                   <span>{available} seats left</span>
                   <span>{occupancy}% booked</span>
                 </div>
-                <div className="h-1.5 rounded-full bg-white/[0.05] overflow-hidden">
+                <div className="h-1.5 rounded-full bg-fg/[0.05] overflow-hidden">
                   <div
                     className={`h-full rounded-full ${occupancy > 80 ? 'bg-red-500' : 'bg-brand-500'}`}
                     style={{ width: `${occupancy}%` }}
@@ -219,22 +215,22 @@ export default function EventDetailPage() {
                 </div>
               </div>
 
-              <hr className="border-white/[0.06] mb-5" />
+              <hr className="border-line mb-5" />
 
               {/* Ticket Count */}
               <div className="mb-5">
-                <label className="block text-sm text-slate-400 mb-3">Number of Tickets</label>
+                <label className="block text-sm text-fg-muted mb-3">Number of Tickets</label>
                 <div className="flex items-center gap-3">
                   <button
                     onClick={() => dispatch(setSelectedTickets(Math.max(1, selectedTickets - 1)))}
-                    className="w-9 h-9 rounded-xl glass-card border border-white/10 flex items-center justify-center text-white hover:border-brand-500/30 transition-all"
+                    className="w-9 h-9 rounded-xl glass-card border border-line flex items-center justify-center text-fg hover:border-brand-500/30 transition-all"
                   >
                     −
                   </button>
-                  <span className="flex-1 text-center text-white font-bold text-xl">{selectedTickets || 1}</span>
+                  <span className="flex-1 text-center text-fg font-bold text-xl">{selectedTickets || 1}</span>
                   <button
                     onClick={() => dispatch(setSelectedTickets(Math.min(10, (selectedTickets || 1) + 1)))}
-                    className="w-9 h-9 rounded-xl glass-card border border-white/10 flex items-center justify-center text-white hover:border-brand-500/30 transition-all"
+                    className="w-9 h-9 rounded-xl glass-card border border-line flex items-center justify-center text-fg hover:border-brand-500/30 transition-all"
                   >
                     +
                   </button>
@@ -243,8 +239,8 @@ export default function EventDetailPage() {
 
               {/* Total */}
               <div className="flex justify-between items-center p-4 rounded-2xl bg-brand-500/5 border border-brand-500/15 mb-5">
-                <span className="text-slate-400 text-sm">Total Amount</span>
-                <span className="text-white font-bold text-xl">₹{total.toLocaleString()}</span>
+                <span className="text-fg-muted text-sm">Total Amount</span>
+                <span className="text-fg font-bold text-xl">₹{total.toLocaleString()}</span>
               </div>
 
               <button
@@ -255,7 +251,7 @@ export default function EventDetailPage() {
                 {bookingLoading ? 'Booking...' : available === 0 ? 'Sold Out' : (isAuthenticated ? 'Book Now' : 'Login to Book')}
               </button>
 
-              <p className="text-center text-slate-600 text-xs mt-3">Secure payment · Instant QR code</p>
+              <p className="text-center text-fg-subtle text-xs mt-3">Secure payment · Instant QR code</p>
             </div>
           </div>
         </div>

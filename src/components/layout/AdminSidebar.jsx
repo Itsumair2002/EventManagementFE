@@ -1,6 +1,7 @@
 import { Link, useLocation } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'
 import { logout } from '../../store/slices/authSlice.js'
+import ThemeToggle from '../ui/ThemeToggle.jsx'
 
 const adminLinks = [
   {
@@ -56,14 +57,14 @@ export default function AdminSidebar() {
   const { user } = useSelector(s => s.auth)
 
   return (
-    <aside className="w-60 min-h-screen bg-dark-800 border-r border-white/[0.06] flex flex-col fixed left-0 top-0 z-40">
+    <aside className="w-60 min-h-screen bg-surface border-r border-line flex flex-col fixed left-0 top-0 z-40">
       {/* Logo */}
-      <div className="h-16 flex items-center px-5 border-b border-white/[0.06]">
+      <div className="h-16 flex items-center px-5 border-b border-line">
         <Link to="/" className="flex items-center gap-2">
-          <div className="w-7 h-7 rounded-lg bg-brand-500 flex items-center justify-center text-white font-bold text-xs">V</div>
-          <span className="font-display font-bold text-lg text-white">Vibe <span className="gradient-text">Check</span></span>
+          <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-brand-400 to-brand-600 flex items-center justify-center text-white font-bold text-xs">V</div>
+          <span className="font-display font-bold text-lg text-fg">Vibe <span className="gradient-text">Check</span></span>
         </Link>
-        <span className="ml-2 text-xs font-mono text-purple-400 bg-purple-400/10 px-1.5 py-0.5 rounded">Admin</span>
+        <span className="ml-2 text-xs font-mono text-primary bg-primary/10 px-1.5 py-0.5 rounded">Admin</span>
       </div>
 
       {/* Nav */}
@@ -74,11 +75,11 @@ export default function AdminSidebar() {
             to={link.path}
             className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${
               location.pathname === link.path
-                ? 'bg-brand-500/15 text-brand-400 border border-brand-500/20'
-                : 'text-slate-500 hover:text-white hover:bg-white/5'
+                ? 'bg-primary/12 text-primary border border-primary/20'
+                : 'text-fg-muted hover:text-fg hover:bg-fg/5'
             }`}
           >
-            <span className={location.pathname === link.path ? 'text-brand-400' : 'text-slate-600'}>
+            <span className={location.pathname === link.path ? 'text-primary' : 'text-fg-subtle'}>
               {link.icon}
             </span>
             {link.label}
@@ -88,13 +89,14 @@ export default function AdminSidebar() {
 
       {/* User Info */}
       <div className="px-3 pb-4">
+        <ThemeToggle variant="pill" className="mb-2 w-full justify-center" />
         <div className="flex items-center gap-3 p-3 rounded-xl glass-card">
           <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-400 to-brand-500 flex items-center justify-center text-white text-xs font-bold shrink-0">
             {user?.name?.[0] || 'A'}
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-white text-sm font-medium truncate">{user?.name || 'Admin'}</p>
-            <p className="text-slate-500 text-xs truncate">{user?.email || 'admin@vibecheck.com'}</p>
+            <p className="text-fg text-sm font-medium truncate">{user?.name || 'Admin'}</p>
+            <p className="text-fg-muted text-xs truncate">{user?.email || 'admin@vibecheck.com'}</p>
           </div>
         </div>
         <button

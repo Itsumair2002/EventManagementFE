@@ -5,6 +5,7 @@ import bookingReducer from './slices/bookingSlice.js'
 import uiReducer from './slices/uiSlice.js'
 import CategorySlice from './slices/CategorySlice.js'
 import EventSlice from './slices/EventSlice.js'
+import aiReducer from './slices/aiSlice.js'
 
 export const store = configureStore({
   reducer: {
@@ -13,6 +14,7 @@ export const store = configureStore({
     booking: bookingReducer,
     ui: uiReducer,
     category: CategorySlice,
-    event:EventSlice
+    event: EventSlice,
+    ai: aiReducer
   },
 })
