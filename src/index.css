@@ -18,13 +18,13 @@
     --fg-muted: 82 89 107;      /* secondary text     #52596b */
     --fg-subtle: 132 139 158;   /* tertiary text      #848b9e */
 
-    --primary: 79 70 229;       /* indigo-600         #4f46e5 */
-    --primary-hover: 67 56 202; /* indigo-700 */
+    --primary: 249 115 22;       /* orange-500         #f97316 */
+    --primary-hover: 234 88 12; /* orange-600 */
     --primary-fg: 255 255 255;  /* text on primary */
-    --primary-soft: 238 242 255;/* indigo-50 tint */
-    --accent-2: 139 92 246;     /* violet-500 (gradients) */
+    --primary-soft: 255 247 237;/* orange-50 tint */
+    --accent-2: 139 92 246;     /* violet-500 (retained for the purple glow on the right!) */
 
-    --ring: 99 102 241;
+    --ring: 249 115 22;
     color-scheme: light;
   }
 
@@ -37,13 +37,13 @@
     --fg-muted: 158 164 184;    /* secondary text */
     --fg-subtle: 108 115 138;   /* tertiary text */
 
-    --primary: 129 140 248;     /* indigo-400 (brighter on dark) */
-    --primary-hover: 99 102 241;/* indigo-500 */
+    --primary: 251 146 60;     /* orange-400 (brighter on dark) */
+    --primary-hover: 249 115 22;/* orange-500 */
     --primary-fg: 255 255 255;
-    --primary-soft: 30 30 58;   /* deep indigo tint */
+    --primary-soft: 67 32 0;   /* deep orange tint */
     --accent-2: 167 139 250;    /* violet-400 */
 
-    --ring: 129 140 248;
+    --ring: 251 146 60;
     color-scheme: dark;
   }
 

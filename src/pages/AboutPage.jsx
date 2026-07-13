@@ -1,11 +1,4 @@
 export default function AboutPage() {
-  const team = [
-    { name: 'Swastika Roy', role: 'CEO & Co-founder', color: 'from-brand-400 to-brand-700' },
-    { name: 'Anikhet Maity', role: 'CTO', color: 'from-purple-400 to-purple-700' },
-    { name: 'Zarin Siddiqui', role: 'Head of Design', color: 'from-pink-400 to-pink-700' },
-    { name: 'Biprodeep Das', role: 'Head of Marketing', color: 'from-blue-400 to-blue-700' },
-    { name: 'Afzal Imam Khan', role: 'Event Manager', color: 'from-blue-400 to-blue-700' },
-  ]
 
   return (
     <div>
@@ -50,27 +43,6 @@ export default function AboutPage() {
                 <div className="text-2xl mb-2">{c.icon}</div>
                 <h4 className="text-fg font-semibold text-sm mb-1">{c.title}</h4>
                 <p className="text-fg-muted text-xs leading-relaxed">{c.desc}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Team */}
-      <section className="py-20 bg-surface/30">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <p className="text-primary text-sm font-mono mb-2">// OUR TEAM</p>
-            <h2 className="font-display font-bold text-3xl text-fg">Meet the Builders</h2>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {team.map((member, i) => (
-              <div key={i} className="glass-card glass-card-hover rounded-2xl p-6 border border-line text-center">
-                <div className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${member.color} flex items-center justify-center text-white text-2xl font-bold mx-auto mb-4`}>
-                  {member.name[0]}
-                </div>
-                <h3 className="font-semibold text-fg mb-1">{member.name}</h3>
-                <p className="text-fg-muted text-sm">{member.role}</p>
               </div>
             ))}
           </div>
