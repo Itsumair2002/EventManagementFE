@@ -65,8 +65,71 @@ export const downloadBookingPDF = createAsyncThunk(
   }
 )
 
+export const getBookingTickets = createAsyncThunk(
+  'booking/getBookingTickets',
+  async (bookingId, { rejectWithValue }) => {
+    try {
+      const response = await api.get(`/bookings/${bookingId}/tickets`)
+      return response.data
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to fetch tickets')
+    }
+  }
+)
+
+export const getMyOwnedTickets = createAsyncThunk(
+  'booking/getMyOwnedTickets',
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await api.get('/bookings/my-tickets')
+      return response.data
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to fetch your tickets')
+    }
+  }
+)
+
+export const transferTicket = createAsyncThunk(
+  'booking/transferTicket',
+  async ({ ticketId, email }, { rejectWithValue }) => {
+    try {
+      const response = await api.post(`/bookings/tickets/${ticketId}/transfer`, { email })
+      return response.data
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to transfer ticket')
+    }
+  }
+)
+
+export const downloadTicketPDF = createAsyncThunk(
+  'booking/downloadTicketPDF',
+  async ({ ticketId, ticketCode }, { rejectWithValue }) => {
+    try {
+      const response = await api.get(`/bookings/tickets/${ticketId}/download`, {
+        responseType: 'blob'
+      })
+      const blob = new Blob([response.data], { type: 'application/pdf' })
+      const url = window.URL.createObjectURL(blob)
+      
+      const a = document.createElement('a')
+      a.href = url
+      a.setAttribute('download', `Ticket-${ticketCode}.pdf`)
+      document.body.appendChild(a)
+      a.click()
+      a.remove()
+      
+      window.URL.revokeObjectURL(url)
+      return true
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to download ticket PDF')
+    }
+  }
+)
+
 const initialState = {
   bookings: [],
+  tickets: [],
+  myTransferredTickets: [],
   currentBooking: null,
   selectedTickets: 1,
   loading: false,
@@ -143,6 +206,51 @@ const bookingSlice = createSlice({
       state.currentBooking = action.payload.booking
     })
     builder.addCase(getSingleBooking.rejected, (state, action) => {
+      state.loading = false
+      state.error = action.payload
+    })
+
+    // Get Booking Tickets
+    builder.addCase(getBookingTickets.pending, (state) => {
+      state.loading = true
+      state.error = null
+    })
+    builder.addCase(getBookingTickets.fulfilled, (state, action) => {
+      state.loading = false
+      state.tickets = action.payload.tickets
+    })
+    builder.addCase(getBookingTickets.rejected, (state, action) => {
+      state.loading = false
+      state.error = action.payload
+    })
+
+    // Get My Owned Tickets
+    builder.addCase(getMyOwnedTickets.pending, (state) => {
+      state.loading = true
+      state.error = null
+    })
+    builder.addCase(getMyOwnedTickets.fulfilled, (state, action) => {
+      state.loading = false
+      state.myTransferredTickets = action.payload.tickets
+    })
+    builder.addCase(getMyOwnedTickets.rejected, (state, action) => {
+      state.loading = false
+      state.error = action.payload
+    })
+
+    // Transfer Ticket
+    builder.addCase(transferTicket.pending, (state) => {
+      state.loading = true
+      state.error = null
+    })
+    builder.addCase(transferTicket.fulfilled, (state, action) => {
+      state.loading = false
+      const idx = state.tickets.findIndex(t => t._id === action.payload.ticket?._id)
+      if (idx !== -1) {
+        state.tickets[idx] = action.payload.ticket
+      }
+    })
+    builder.addCase(transferTicket.rejected, (state, action) => {
       state.loading = false
       state.error = action.payload
     })

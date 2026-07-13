@@ -8,17 +8,31 @@ import { resolveEventImage, eventPlaceholder } from '../utils/media.js'
 export default function EventDetailPage() {
   const { id } = useParams()
   const { singleEventData, loading, error } = useSelector(state => state?.event)
-  const { isAuthenticated } = useSelector(state => state?.auth)
+  const { isAuthenticated, user } = useSelector(state => state?.auth)
   const { selectedTickets, loading: bookingLoading } = useSelector(state => state?.booking)
   const dispatch = useDispatch()
   const navigate = useNavigate()
   const [activeTab, setActiveTab] = useState('about')
+  const [ticketEmails, setTicketEmails] = useState([])
 
   useEffect(() => {
     if (id) {
       dispatch(fetchSingleEvents({ id }))
     }
   }, [id, dispatch])
+
+  useEffect(() => {
+    const requiredLength = Math.max(0, selectedTickets - 1);
+    setTicketEmails(prev => {
+      const next = [...prev];
+      if (next.length < requiredLength) {
+        while (next.length < requiredLength) next.push('');
+      } else if (next.length > requiredLength) {
+        next.splice(requiredLength);
+      }
+      return next;
+    });
+  }, [selectedTickets]);
 
   const event = singleEventData?.events
   
@@ -59,7 +73,16 @@ export default function EventDetailPage() {
   const handleBook = async () => {
     if (!isAuthenticated) { navigate('/login'); return }
     try {
-      await dispatch(createBookingThunk({ eventId: event._id || event.id, numberOfTickets: selectedTickets })).unwrap()
+      const emails = [user?.email];
+      for (let i = 0; i < selectedTickets - 1; i++) {
+        emails.push(ticketEmails[i]?.trim().toLowerCase() || user?.email);
+      }
+
+      await dispatch(createBookingThunk({ 
+        eventId: event._id || event.id, 
+        numberOfTickets: selectedTickets,
+        emails
+      })).unwrap()
       navigate('/my-bookings')
     } catch (err) {
       alert(err || 'Failed to book tickets')
@@ -236,6 +259,33 @@ export default function EventDetailPage() {
                   </button>
                 </div>
               </div>
+
+              {/* Assign Tickets to Friends */}
+              {isAuthenticated && selectedTickets > 1 && (
+                <div className="mb-5 p-4 rounded-2xl bg-fg/[0.02] border border-line space-y-3.5 animate-fade-down">
+                  <span className="text-[10px] font-mono text-primary font-bold tracking-widest block mb-1">// ASSIGN SEATS TO FRIENDS</span>
+                  {Array.from({ length: selectedTickets - 1 }).map((_, idx) => (
+                    <div key={idx} className="space-y-1">
+                      <label className="text-fg-muted text-[10px] uppercase font-mono">Seat #{idx + 2} Recipient Email</label>
+                      <input
+                        type="email"
+                        required
+                        placeholder={`friend-${idx + 1}@example.com`}
+                        value={ticketEmails[idx] || ''}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setTicketEmails(prev => {
+                            const next = [...prev];
+                            next[idx] = val;
+                            return next;
+                          });
+                        }}
+                        className="w-full px-3 py-2 text-xs rounded-xl bg-canvas border border-line focus:border-primary text-fg placeholder:text-fg-subtle"
+                      />
+                    </div>
+                  ))}
+                </div>
+              )}
 
               {/* Total */}
               <div className="flex justify-between items-center p-4 rounded-2xl bg-brand-500/5 border border-brand-500/15 mb-5">
